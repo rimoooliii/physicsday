@@ -30,7 +30,7 @@ Implementation requires these one-time GitHub changes:
 3. Install the giscus GitHub App for this repository only.
 4. Obtain the public repository ID and category ID from the giscus configuration page.
 
-The repository and category IDs are public browser configuration, not secrets. They will be committed in a small typed site configuration module so local builds, CI builds, and production cannot silently diverge. A validation test will require every field and reject an invalid or partial configuration.
+The repository and category IDs are public browser configuration, not secrets. Their production values will live in GitHub Actions repository variables, while a small typed site configuration module validates them. Production builds set `REQUIRE_GISCUS=1` and fail when any field is absent or invalid. Local builds may omit all giscus variables and show the direct GitHub fallback, but a partial local configuration is always an error.
 
 Installing the GitHub App changes repository permissions. The implementation must show the requested permission scope and obtain confirmation immediately before the final installation action.
 
@@ -78,7 +78,7 @@ Before a discussion exists, the external link opens a category-scoped Discussion
 
 Automated tests will cover:
 
-- complete, valid giscus configuration;
+- complete, valid giscus configuration and production-required behavior;
 - stable ID mapping rather than title or pathname mapping;
 - generated article HTML containing the discussion disclosure, direct fallback URL, loading state, retry control, and giscus configuration;
 - safe degradation when the third-party frame is unavailable;

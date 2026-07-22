@@ -1,14 +1,22 @@
 ---
+interface Props {
+  articleId: string;
+}
+
+const { articleId } = Astro.props;
 const configured = Boolean(
   import.meta.env.PUBLIC_GISCUS_REPO_ID && import.meta.env.PUBLIC_GISCUS_CATEGORY_ID
 );
-const repo = import.meta.env.PUBLIC_GISCUS_REPO;
+const repo = import.meta.env.PUBLIC_GISCUS_REPO || 'rimoooliii/physicsday';
 const repoId = import.meta.env.PUBLIC_GISCUS_REPO_ID;
-const category = import.meta.env.PUBLIC_GISCUS_CATEGORY;
+const category = import.meta.env.PUBLIC_GISCUS_CATEGORY || 'Announcements';
 const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
+const githubDiscussionUrl = `https://github.com/${repo}/discussions?discussions_q=${encodeURIComponent(`category:${category} \"${articleId}\"`)}`;
 ---
 <section class="discussion" aria-labelledby="discussion-title">
   <h2 id="discussion-title">Discussion</h2>
+  <p class="discussion-note">Comments are public and require a GitHub account. They are discussion, not part of the canonical article record.</p>
+  <p><a class="discussion-link" href={githubDiscussionUrl}>Open this article's discussion on GitHub →</a></p>
   {configured ? (
     <script
       is:inline
@@ -18,7 +26,7 @@ const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
       data-category={category}
       data-category-id={categoryId}
       data-mapping="specific"
-      data-term={Astro.url.pathname.split('/').filter(Boolean).at(-1)}
+      data-term={articleId}
       data-strict="1"
       data-reactions-enabled="1"
       data-emit-metadata="0"
@@ -29,6 +37,6 @@ const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
       async>
     </script>
   ) : (
-    <p>Comments will appear here after giscus repository and category IDs are configured. The article remains fully usable without them.</p>
+    <p class="discussion-status">Embedded comments are being connected. You can use the GitHub Discussions link above now.</p>
   )}
 </section>

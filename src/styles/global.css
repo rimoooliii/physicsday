@@ -333,6 +333,20 @@ h1 {
 .discussion h2 {
   font-size: 28px;
 }
+.discussion-note,
+.discussion-status {
+  color: var(--muted);
+  line-height: 1.6;
+}
+.discussion-link {
+  display: inline-block;
+  color: var(--blue);
+  font: 13px var(--mono);
+  text-decoration: none;
+}
+.discussion .giscus {
+  margin-top: 28px;
+}
 .tool-links {
   display: flex;
   gap: 12px;

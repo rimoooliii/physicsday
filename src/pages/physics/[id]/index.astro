@@ -48,6 +48,6 @@ const context = articleContext(physicsEntries, entry.data.id);
       <a href={withBase('/archive/', base)}>Archive</a>
       <span>{context.next ? <a rel="next" href={withBase(`/physics/${context.next}/`, base)}>Next record →<br/><strong>{context.next}</strong></a> : 'Latest record'}</span>
     </nav>
-    <GiscusPanel />
+    <GiscusPanel articleId={entry.data.id} />
   </article>
 </BaseLayout>

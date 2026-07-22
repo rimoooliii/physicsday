@@ -1,0 +1,10 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../lib/site';
+const entries = (await getCollection('physics')).filter((e)=>e.data.status !== 'draft').sort((a,b)=>b.data.date.getTime()-a.data.date.getTime() || b.data.id.localeCompare(a.data.id));
+---
+<BaseLayout title="Archive" description="Browse every durable physics training record." canonicalPath="/archive/">
+  <section class="page-intro shell"><p class="section-label">Archive</p><h1>The durable trail</h1><p>Dates may repeat. IDs do not.</p></section>
+  <ol class="archive-list shell">{entries.map((entry)=><li><a href={withBase(`/physics/${entry.data.id}/`, import.meta.env.BASE_URL)}><span class="mono">{entry.data.id}</span><h2>{entry.data.title}</h2><p>{entry.data.summary}</p><span class="entry-tags">{entry.data.entry_kind} · {entry.data.domains.join(' · ')} · {entry.data.status}</span></a></li>)}</ol>
+</BaseLayout>

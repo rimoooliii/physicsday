@@ -1,0 +1,15 @@
+---
+import { withBase } from '../lib/site';
+interface TraceEntry { id: string; data: { id: string; date: Date; domains: string[]; entry_kind: string } }
+const { entries } = Astro.props as { entries: TraceEntry[] };
+---
+<ol class="continuity-trace" aria-label="Recent continuity trace">
+  {entries.map((entry, index) => (
+    <li style={`--trace-index:${index}`}>
+      <a href={withBase(`/physics/${entry.data.id}/`, import.meta.env.BASE_URL)}>
+        <span>{entry.data.date.toISOString().slice(5, 10)}</span>
+        <strong>{entry.data.domains[0]?.replaceAll('-', ' ')}</strong>
+      </a>
+    </li>
+  ))}
+</ol>

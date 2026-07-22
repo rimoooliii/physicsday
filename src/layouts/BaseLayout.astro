@@ -1,0 +1,65 @@
+---
+import '@fontsource/stix-two-text/400.css';
+import '@fontsource/stix-two-text/600.css';
+import '@fontsource/ibm-plex-sans/400.css';
+import '@fontsource/ibm-plex-sans/600.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '../styles/global.css';
+import { withBase } from '../lib/site';
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath?: string;
+}
+
+const { title, description, canonicalPath = '/' } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const canonical = new URL(withBase(canonicalPath, base), Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <title>{title} · Physics Ledger</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href={withBase('/', base)} aria-label="Physics Ledger home">
+        <span>Physics</span><strong>Ledger</strong>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href={withBase('/today/', base)}>Today</a>
+        <a href={withBase('/archive/', base)}>Archive</a>
+        <a href={withBase('/progress/', base)}>Progress</a>
+        <a href={withBase('/search/', base)}>Search</a>
+        <a href={withBase('/about/', base)}>About</a>
+      </nav>
+    </header>
+    <main><slot /></main>
+    <footer class="site-footer">
+      <span>One fracture at a time.</span>
+      <span>Stable records, finite conversations.</span>
+    </footer>
+    <script>
+      document.addEventListener('click', async (event) => {
+        const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.copy-tex');
+        if (!button) return;
+        const wrapper = button.closest<HTMLElement>('[data-tex]');
+        if (!wrapper?.dataset.tex) return;
+        try {
+          const bytes = Uint8Array.from(atob(wrapper.dataset.tex), (character) => character.charCodeAt(0));
+          await navigator.clipboard.writeText(new TextDecoder().decode(bytes));
+          button.textContent = 'Copied';
+        } catch {
+          button.textContent = 'Copy failed';
+        }
+        window.setTimeout(() => (button.textContent = 'Copy LaTeX'), 1600);
+      });
+    </script>
+  </body>
+</html>

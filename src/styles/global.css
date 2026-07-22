@@ -96,6 +96,12 @@ h1 {
   max-width: 1000px;
   margin: 0.2em 0;
 }
+.hero-title {
+  max-width: 960px;
+  font-size: clamp(48px, 7vw, 92px);
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
 .lede {
   font: 400 clamp(19px, 2.4vw, 28px)/1.45 var(--serif);
   max-width: 760px;
@@ -160,15 +166,74 @@ h1 {
   color: var(--muted);
 }
 .page-intro {
-  padding: 80px 0 50px;
+  padding: clamp(64px, 9vw, 112px) 0 clamp(46px, 7vw, 76px);
 }
 .page-intro > p {
   max-width: 65ch;
   line-height: 1.7;
 }
+.page-intro h1 {
+  max-width: 900px;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.page-intro h1 + p {
+  color: #364c55;
+  font-size: clamp(17px, 1.7vw, 21px);
+}
 .notice {
   border-left: 3px solid var(--violet);
   padding-left: 16px;
+}
+.today-focus {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: clamp(52px, 8vw, 118px);
+  align-items: end;
+  padding-block: clamp(72px, 11vw, 138px) clamp(68px, 9vw, 108px);
+}
+.today-main {
+  min-width: 0;
+}
+.today-main h1 {
+  max-width: 860px;
+  margin: 0.18em 0 0.28em;
+  font-size: clamp(44px, 6.2vw, 78px);
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.today-date {
+  margin: 18px 0 0;
+  color: var(--muted);
+}
+.today-status {
+  max-width: 62ch;
+  margin: 24px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.today-ledger {
+  border-left: 1px solid var(--line);
+  padding-left: 28px;
+}
+.today-ledger dl {
+  margin: 24px 0 0;
+}
+.today-ledger dl div {
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+}
+.today-ledger dt {
+  color: var(--muted);
+  font: 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.today-ledger dd {
+  margin: 5px 0 0;
+  overflow-wrap: anywhere;
+  font: 13px/1.5 var(--mono);
 }
 .archive-list {
   list-style: none;
@@ -366,7 +431,8 @@ h1 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  padding: 0 0 20px;
+  padding: 24px 0;
+  border-block: 1px solid var(--line);
 }
 .archive-filters label {
   display: grid;
@@ -468,6 +534,22 @@ h1 {
   }
   .article-body {
     font-size: 18px;
+  }
+  .hero-title {
+    font-size: clamp(44px, 13vw, 66px);
+  }
+  .today-focus {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    padding-block: 64px;
+  }
+  .today-main h1 {
+    font-size: clamp(42px, 12vw, 62px);
+  }
+  .today-ledger {
+    border-top: 1px solid var(--line);
+    border-left: 0;
+    padding: 28px 0 0;
   }
   .archive-filters {
     grid-template-columns: 1fr 1fr;

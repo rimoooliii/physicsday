@@ -9,7 +9,7 @@ const latest = entries[0];
 <BaseLayout title="Daily advanced theoretical physics" description="A durable ledger for daily theoretical-physics training.">
   <section class="hero shell">
     <div class="eyebrow">Current fracture · {latest?.data.date.toISOString().slice(0,10)}</div>
-    <h1>{latest?.data.title ?? 'No published session yet'}</h1>
+    <h1 class="hero-title">{latest?.data.title ?? 'No published session yet'}</h1>
     <p class="lede">{latest?.data.summary ?? 'Add a validated Markdown entry to begin the ledger.'}</p>
     {latest && <a class="primary-action" href={withBase(`/physics/${latest.data.id}/`, import.meta.env.BASE_URL)}>Begin today’s problem <span>→</span></a>}
   </section>

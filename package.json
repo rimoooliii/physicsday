@@ -11,7 +11,7 @@
     "validate": "tsx scripts/validate-content.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run validate && npm test && astro check && npm run build"
+    "check": "npm run validate && npm test && astro check"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.2.1",

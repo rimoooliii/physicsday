@@ -24,6 +24,7 @@ const jsonUrl = new URL(withBase(`/physics/${entry.data.id}.json`, base), Astro.
       <h1>{entry.data.title}</h1>
       <p class="lede">{entry.data.summary}</p>
       <dl class="metadata"><div><dt>Date</dt><dd>{entry.data.date.toISOString().slice(0,10)}</dd></div><div><dt>Kind</dt><dd>{entry.data.entry_kind}</dd></div><div><dt>Level</dt><dd>{entry.data.level}</dd></div><div><dt>Time</dt><dd>{entry.data.estimated_minutes} min</dd></div></dl>
+      <div hidden>{entry.data.domains.map((domain) => <span data-pagefind-filter="domain">{domain}</span>)}</div>
       {entry.data.status !== 'published' && <aside class={`lifecycle ${entry.data.status}`}>This record is {entry.data.status}.</aside>}
     </header>
     <div class="article-body" data-pagefind-body><Content /></div>

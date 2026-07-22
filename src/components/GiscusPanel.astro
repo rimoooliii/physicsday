@@ -2,11 +2,32 @@
 const configured = Boolean(
   import.meta.env.PUBLIC_GISCUS_REPO_ID && import.meta.env.PUBLIC_GISCUS_CATEGORY_ID
 );
+const repo = import.meta.env.PUBLIC_GISCUS_REPO;
+const repoId = import.meta.env.PUBLIC_GISCUS_REPO_ID;
+const category = import.meta.env.PUBLIC_GISCUS_CATEGORY;
+const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
 ---
 <section class="discussion" aria-labelledby="discussion-title">
   <h2 id="discussion-title">Discussion</h2>
   {configured ? (
-    <p>GitHub Discussion loading is enabled for this deployment.</p>
+    <script
+      is:inline
+      src="https://giscus.app/client.js"
+      data-repo={repo}
+      data-repo-id={repoId}
+      data-category={category}
+      data-category-id={categoryId}
+      data-mapping="specific"
+      data-term={Astro.url.pathname.split('/').filter(Boolean).at(-1)}
+      data-strict="1"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="en"
+      crossorigin="anonymous"
+      async>
+    </script>
   ) : (
     <p>Comments will appear here after giscus repository and category IDs are configured. The article remains fully usable without them.</p>
   )}

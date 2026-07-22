@@ -19,9 +19,9 @@ env:
   SITE_URL: https://rimoooliii.github.io
   BASE_PATH: /physicsday
   PUBLIC_GISCUS_REPO: rimoooliii/physicsday
-  PUBLIC_GISCUS_REPO_ID: ${{ vars.PUBLIC_GISCUS_REPO_ID }}
-  PUBLIC_GISCUS_CATEGORY: ${{ vars.PUBLIC_GISCUS_CATEGORY || 'Announcements' }}
-  PUBLIC_GISCUS_CATEGORY_ID: ${{ vars.PUBLIC_GISCUS_CATEGORY_ID }}
+  PUBLIC_GISCUS_REPO_ID: R_kgDOTfuevA
+  PUBLIC_GISCUS_CATEGORY: Announcements
+  PUBLIC_GISCUS_CATEGORY_ID: DIC_kwDOTfuevM4DBtZZ
 
 jobs:
   build:

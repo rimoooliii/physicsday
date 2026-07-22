@@ -48,18 +48,23 @@ const canonical = new URL(withBase(canonicalPath, base), Astro.site);
     </footer>
     <script>
       document.addEventListener('click', async (event) => {
-        const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.copy-tex');
+        const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.copy-tex, .copy-value');
         if (!button) return;
+        const directValue = button.dataset.copyValue;
         const wrapper = button.closest<HTMLElement>('[data-tex]');
-        if (!wrapper?.dataset.tex) return;
+        if (!directValue && !wrapper?.dataset.tex) return;
         try {
-          const bytes = Uint8Array.from(atob(wrapper.dataset.tex), (character) => character.charCodeAt(0));
-          await navigator.clipboard.writeText(new TextDecoder().decode(bytes));
+          const value = directValue ?? (() => {
+            const bytes = Uint8Array.from(atob(wrapper!.dataset.tex!), (character) => character.charCodeAt(0));
+            return new TextDecoder().decode(bytes);
+          })();
+          await navigator.clipboard.writeText(value);
           button.textContent = 'Copied';
         } catch {
           button.textContent = 'Copy failed';
         }
-        window.setTimeout(() => (button.textContent = 'Copy LaTeX'), 1600);
+        const originalLabel = button.classList.contains('copy-tex') ? 'Copy LaTeX' : 'Copy permanent URL';
+        window.setTimeout(() => (button.textContent = originalLabel), 1600);
       });
     </script>
   </body>

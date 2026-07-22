@@ -29,5 +29,19 @@ describe('human site build', () => {
     expect(html).toContain('<svg');
     expect(html).toContain('data-tex');
     expect(html).toContain('Copy LaTeX');
+    expect(html).toContain('data-copy-value');
+    expect(html).toContain('article-navigation');
+  });
+
+  it('renders controlled archive filters with published as the default', async () => {
+    const html = await readFile('dist/archive/index.html', 'utf8');
+    expect(html).toContain('data-archive-filters');
+    expect(html).toContain('name="status"');
+    expect(html).toContain('value="published" selected');
+    expect(html).toContain('name="domain"');
+    expect(html).toContain('name="entry_kind"');
+    expect(html).toContain('name="level"');
+    expect(html).toContain('name="user_difficulty"');
+    expect(html).toContain('name="year"');
   });
 });

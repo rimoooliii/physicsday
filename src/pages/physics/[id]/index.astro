@@ -3,6 +3,8 @@ import { getCollection, render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import GiscusPanel from '../../../components/GiscusPanel.astro';
 import { withBase } from '../../../lib/site';
+import { articleContext } from '../../../lib/content/navigation';
+import type { PhysicsEntry } from '../../../lib/content/types';
 export async function getStaticPaths() {
   const entries = await getCollection('physics', ({data}) => data.status !== 'draft');
   return entries.map((entry) => ({ params: { id: entry.data.id }, props: { entry } }));
@@ -13,6 +15,13 @@ const base = import.meta.env.BASE_URL;
 const articlePath = `/physics/${entry.data.id}/`;
 const markdownUrl = new URL(withBase(`/physics/${entry.data.id}.md`, base), Astro.site);
 const jsonUrl = new URL(withBase(`/physics/${entry.data.id}.json`, base), Astro.site);
+const permanentUrl = new URL(withBase(articlePath, base), Astro.site).toString();
+const allEntries = await getCollection('physics');
+const physicsEntries = allEntries.map((item): PhysicsEntry => ({
+  id: item.data.id,
+  data: item.data,
+}));
+const context = articleContext(physicsEntries, entry.data.id);
 ---
 <BaseLayout title={entry.data.title} description={entry.data.summary} canonicalPath={articlePath}>
   <link slot="head" rel="alternate" type="text/markdown" href={markdownUrl} />
@@ -25,14 +34,20 @@ const jsonUrl = new URL(withBase(`/physics/${entry.data.id}.json`, base), Astro.
       <p class="lede">{entry.data.summary}</p>
       <dl class="metadata"><div><dt>Date</dt><dd>{entry.data.date.toISOString().slice(0,10)}</dd></div><div><dt>Kind</dt><dd>{entry.data.entry_kind}</dd></div><div><dt>Level</dt><dd>{entry.data.level}</dd></div><div><dt>Time</dt><dd>{entry.data.estimated_minutes} min</dd></div></dl>
       <div hidden>{entry.data.domains.map((domain) => <span data-pagefind-filter="domain">{domain}</span>)}</div>
-      {entry.data.status !== 'published' && <aside class={`lifecycle ${entry.data.status}`}>This record is {entry.data.status}.</aside>}
+      {entry.data.status !== 'published' && <aside class={`lifecycle ${entry.data.status}`}>This record is {entry.data.status}.{context.supersededBy && <> Continue with <a href={withBase(`/physics/${context.supersededBy}/`, base)}>{context.supersededBy}</a>.</>}</aside>}
+      {context.replaces && <aside class="lifecycle relationship">This record replaces <a href={withBase(`/physics/${context.replaces}/`, base)}>{context.replaces}</a>.</aside>}
     </header>
     <div class="article-body" data-pagefind-body><Content /></div>
     <footer class="article-tools">
       <h2>Use this record elsewhere</h2>
       <p>Reference <strong>{entry.data.id}</strong> or its permanent URL in a new AI conversation.</p>
-      <div class="tool-links"><a href={markdownUrl}>Source Markdown</a><a href={jsonUrl}>Machine-readable JSON</a></div>
+      <div class="tool-links"><button type="button" class="copy-value" data-copy-value={permanentUrl}>Copy permanent URL</button><a href={markdownUrl}>Source Markdown</a><a href={jsonUrl}>Machine-readable JSON</a></div>
     </footer>
+    <nav class="article-navigation" aria-label="Article navigation">
+      <span>{context.previous ? <a rel="prev" href={withBase(`/physics/${context.previous}/`, base)}>← Previous record<br/><strong>{context.previous}</strong></a> : 'Beginning of ledger'}</span>
+      <a href={withBase('/archive/', base)}>Archive</a>
+      <span>{context.next ? <a rel="next" href={withBase(`/physics/${context.next}/`, base)}>Next record →<br/><strong>{context.next}</strong></a> : 'Latest record'}</span>
+    </nav>
     <GiscusPanel />
   </article>
 </BaseLayout>

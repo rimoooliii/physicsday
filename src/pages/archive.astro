@@ -2,9 +2,53 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { withBase } from '../lib/site';
+import { DOMAINS, ENTRY_KINDS, LEVELS, STATUSES, USER_DIFFICULTIES } from '../lib/content/types';
 const entries = (await getCollection('physics')).filter((e)=>e.data.status !== 'draft').sort((a,b)=>b.data.date.getTime()-a.data.date.getTime() || b.data.id.localeCompare(a.data.id));
+const years = [...new Set(entries.map((entry) => entry.data.date.getUTCFullYear().toString()))].sort().reverse();
 ---
 <BaseLayout title="Archive" description="Browse every durable physics training record." canonicalPath="/archive/">
   <section class="page-intro shell"><p class="section-label">Archive</p><h1>The durable trail</h1><p>Dates may repeat. IDs do not.</p></section>
-  <ol class="archive-list shell">{entries.map((entry)=><li><a href={withBase(`/physics/${entry.data.id}/`, import.meta.env.BASE_URL)}><span class="mono">{entry.data.id}</span><h2>{entry.data.title}</h2><p>{entry.data.summary}</p><span class="entry-tags">{entry.data.entry_kind} · {entry.data.domains.join(' · ')} · {entry.data.status}</span></a></li>)}</ol>
+  <form class="archive-filters shell" data-archive-filters>
+    <label>Status<select name="status"><option value="all">all</option>{STATUSES.filter((status) => status !== 'draft').map((status) => <option value={status} selected={status === 'published'}>{status}</option>)}</select></label>
+    <label>Domain<select name="domain"><option value="all">all</option>{DOMAINS.map((domain) => <option value={domain}>{domain}</option>)}</select></label>
+    <label>Kind<select name="entry_kind"><option value="all">all</option>{ENTRY_KINDS.map((kind) => <option value={kind}>{kind}</option>)}</select></label>
+    <label>Level<select name="level"><option value="all">all</option>{LEVELS.map((level) => <option value={level}>{level}</option>)}</select></label>
+    <label>Difficulty<select name="user_difficulty"><option value="all">all</option>{USER_DIFFICULTIES.map((difficulty) => <option value={difficulty}>{difficulty}</option>)}</select></label>
+    <label>Year<select name="year"><option value="all">all</option>{years.map((year) => <option value={year}>{year}</option>)}</select></label>
+    <button type="reset">Reset</button>
+  </form>
+  <p class="archive-count shell" aria-live="polite"><span data-archive-count>{entries.filter((entry) => entry.data.status === 'published').length}</span> records shown</p>
+  <ol class="archive-list shell" data-archive-list>{entries.map((entry)=><li
+    hidden={entry.data.status !== 'published'}
+    data-status={entry.data.status}
+    data-domain={entry.data.domains.join(' ')}
+    data-entry-kind={entry.data.entry_kind}
+    data-level={entry.data.level}
+    data-user-difficulty={entry.data.user_difficulty}
+    data-year={entry.data.date.getUTCFullYear()}
+  ><a href={withBase(`/physics/${entry.data.id}/`, import.meta.env.BASE_URL)}><span class="mono">{entry.data.id}</span><h2>{entry.data.title}</h2><p>{entry.data.summary}</p><span class="entry-tags">{entry.data.entry_kind} · {entry.data.domains.join(' · ')} · {entry.data.status}</span></a></li>)}</ol>
+  <script>
+    const form = document.querySelector<HTMLFormElement>('[data-archive-filters]');
+    const records = [...document.querySelectorAll<HTMLElement>('[data-archive-list] > li')];
+    const count = document.querySelector<HTMLElement>('[data-archive-count]');
+    const applyFilters = () => {
+      if (!form) return;
+      const filters = Object.fromEntries(new FormData(form));
+      let visible = 0;
+      for (const record of records) {
+        const matches = Object.entries(filters).every(([key, value]) => {
+          if (value === 'all') return true;
+          const dataKey = key.replaceAll('_', '');
+          const candidate = record.dataset[dataKey] ?? '';
+          return key === 'domain' ? candidate.split(' ').includes(String(value)) : candidate === value;
+        });
+        record.hidden = !matches;
+        if (matches) visible += 1;
+      }
+      if (count) count.textContent = String(visible);
+    };
+    form?.addEventListener('change', applyFilters);
+    form?.addEventListener('reset', () => window.setTimeout(applyFilters));
+    applyFilters();
+  </script>
 </BaseLayout>

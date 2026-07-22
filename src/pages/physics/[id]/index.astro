@@ -11,8 +11,12 @@ const { entry } = Astro.props as { entry: CollectionEntry<'physics'> };
 const { Content } = await render(entry);
 const base = import.meta.env.BASE_URL;
 const articlePath = `/physics/${entry.data.id}/`;
+const markdownUrl = new URL(withBase(`/physics/${entry.data.id}.md`, base), Astro.site);
+const jsonUrl = new URL(withBase(`/physics/${entry.data.id}.json`, base), Astro.site);
 ---
 <BaseLayout title={entry.data.title} description={entry.data.summary} canonicalPath={articlePath}>
+  <link slot="head" rel="alternate" type="text/markdown" href={markdownUrl} />
+  <link slot="head" rel="alternate" type="application/json" href={jsonUrl} />
   <article class="article-shell">
     <header class="article-header">
       <div class="fracture-rule"><span></span></div>
@@ -26,7 +30,7 @@ const articlePath = `/physics/${entry.data.id}/`;
     <footer class="article-tools">
       <h2>Use this record elsewhere</h2>
       <p>Reference <strong>{entry.data.id}</strong> or its permanent URL in a new AI conversation.</p>
-      <div class="tool-links"><a href={withBase(`/physics/${entry.data.id}.md`,base)}>Source Markdown</a><a href={withBase(`/physics/${entry.data.id}.json`,base)}>Machine-readable JSON</a></div>
+      <div class="tool-links"><a href={markdownUrl}>Source Markdown</a><a href={jsonUrl}>Machine-readable JSON</a></div>
     </footer>
     <GiscusPanel />
   </article>

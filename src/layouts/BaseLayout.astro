@@ -25,6 +25,7 @@ const canonical = new URL(withBase(canonicalPath, base), Astro.site);
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <slot name="head" />
     <title>{title} · Physics Ledger</title>
   </head>
   <body>

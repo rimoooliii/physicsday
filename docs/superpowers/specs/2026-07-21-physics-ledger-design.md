@@ -1,7 +1,7 @@
 # Physics Ledger Design Specification
 
 **Date:** 2026-07-21  
-**Status:** Approved design, pending written-spec review  
+**Status:** Approved
 **Product:** A personal, static archive for daily advanced theoretical-physics training
 
 ## 1. Purpose

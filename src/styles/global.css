@@ -373,11 +373,36 @@ h1 {
   padding: 22px 8px 28px;
   border-block: 1px solid var(--line);
 }
-.math-expression mjx-container {
-  max-width: 100%;
+.math-expression mjx-container[jax='SVG'] {
+  direction: ltr;
+}
+.math-expression.math-display mjx-container[jax='SVG'][display='true'] {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  text-align: center;
+  margin: 0;
 }
 .math-expression svg {
   max-width: none;
+}
+mjx-assistive-mml {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  clip: rect(1px, 1px, 1px, 1px);
+  padding: 1px 0 0 !important;
+  border: 0 !important;
+  display: block !important;
+  width: auto !important;
+  overflow: hidden !important;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+mjx-assistive-mml[display='block'] {
+  width: 100% !important;
 }
 .copy-tex {
   position: absolute;

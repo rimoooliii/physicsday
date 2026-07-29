@@ -3,52 +3,622 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { withBase } from '../lib/site';
 import { DOMAINS, ENTRY_KINDS, LEVELS, STATUSES, USER_DIFFICULTIES } from '../lib/content/types';
+
 const entries = (await getCollection('physics')).filter((e)=>e.data.status !== 'draft').sort((a,b)=>b.data.date.getTime()-a.data.date.getTime() || b.data.id.localeCompare(a.data.id));
 const years = [...new Set(entries.map((entry) => entry.data.date.getUTCFullYear().toString()))].sort().reverse();
+const publishedCount = entries.filter((entry) => entry.data.status === 'published').length;
+const monthFormatter = new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const weekdayFormatter = new Intl.DateTimeFormat('en', { weekday: 'short', timeZone: 'UTC' });
+const fullDateFormatter = new Intl.DateTimeFormat('en', { dateStyle: 'long', timeZone: 'UTC' });
+const humanize = (value: string) => value
+  .split('-')
+  .map((part, index) => index === 0 ? `${part.charAt(0).toUpperCase()}${part.slice(1)}` : part)
+  .join(' ');
+const monthGroups = entries.reduce((groups, entry) => {
+  const key = entry.data.date.toISOString().slice(0, 7);
+  let group = groups.find((candidate) => candidate.key === key);
+  if (!group) {
+    group = { key, label: monthFormatter.format(entry.data.date), entries: [] };
+    groups.push(group);
+  }
+  group.entries.push(entry);
+  return groups;
+}, [] as Array<{ key: string; label: string; entries: typeof entries }>);
 ---
-<BaseLayout title="Archive" description="Browse every durable physics training record." canonicalPath="/archive/">
-  <section class="page-intro shell"><p class="section-label">Archive</p><h1>The durable trail</h1><p>Dates may repeat. IDs do not.</p></section>
-  <form class="archive-filters shell" data-archive-filters>
-    <label>Status<select name="status"><option value="all">all</option>{STATUSES.filter((status) => status !== 'draft').map((status) => <option value={status} selected={status === 'published'}>{status}</option>)}</select></label>
-    <label>Domain<select name="domain"><option value="all">all</option>{DOMAINS.map((domain) => <option value={domain}>{domain}</option>)}</select></label>
-    <label>Kind<select name="entry_kind"><option value="all">all</option>{ENTRY_KINDS.map((kind) => <option value={kind}>{kind}</option>)}</select></label>
-    <label>Level<select name="level"><option value="all">all</option>{LEVELS.map((level) => <option value={level}>{level}</option>)}</select></label>
-    <label>Difficulty<select name="user_difficulty"><option value="all">all</option>{USER_DIFFICULTIES.map((difficulty) => <option value={difficulty}>{difficulty}</option>)}</select></label>
-    <label>Year<select name="year"><option value="all">all</option>{years.map((year) => <option value={year}>{year}</option>)}</select></label>
-    <button type="reset">Reset</button>
+
+<BaseLayout title="Archive" description="Browse physics problems by subject, level, and date." canonicalPath="/archive/">
+  <header class="archive-header shell">
+    <div>
+      <p class="section-label">Physics notes</p>
+      <h1>Archive</h1>
+    </div>
+    <p class="archive-result-count" aria-live="polite">
+      <strong data-archive-count>{publishedCount}</strong>
+      <span data-archive-count-label>{publishedCount === 1 ? 'note' : 'notes'}</span>
+    </p>
+  </header>
+
+  <form class="archive-index shell" data-archive-filters aria-label="Filter archive notes">
+    <fieldset class="domain-filter">
+      <legend>Topic</legend>
+      <div class="domain-options">
+        <label class="domain-choice">
+          <input type="radio" name="domain" value="all" checked />
+          <span>All</span>
+        </label>
+        {DOMAINS.map((domain) => (
+          <label class="domain-choice">
+            <input type="radio" name="domain" value={domain} />
+            <span>{humanize(domain)}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+
+    <div class="archive-refinement">
+      <details class="archive-refine" data-archive-refine>
+        <summary>Refine <span data-refine-count></span></summary>
+        <div class="refine-grid">
+          <label>
+            <span>Status</span>
+            <select name="status">
+              <option value="all">All</option>
+              {STATUSES.filter((status) => status !== 'draft').map((status) => (
+                <option value={status} selected={status === 'published'}>{humanize(status)}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>Format</span>
+            <select name="entry_kind">
+              <option value="all">All</option>
+              {ENTRY_KINDS.map((kind) => <option value={kind}>{humanize(kind)}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Level</span>
+            <select name="level">
+              <option value="all">All</option>
+              {LEVELS.map((level) => <option value={level}>{humanize(level)}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Difficulty</span>
+            <select name="user_difficulty">
+              <option value="all">All</option>
+              {USER_DIFFICULTIES.map((difficulty) => <option value={difficulty}>{humanize(difficulty)}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Year</span>
+            <select name="year">
+              <option value="all">All</option>
+              {years.map((year) => <option value={year}>{year}</option>)}
+            </select>
+          </label>
+        </div>
+      </details>
+      <button class="archive-clear" type="reset" data-clear-filters hidden>Clear filters</button>
+    </div>
   </form>
-  <p class="archive-count shell" aria-live="polite"><span data-archive-count>{entries.filter((entry) => entry.data.status === 'published').length}</span> records shown</p>
-  <ol class="archive-list shell" data-archive-list>{entries.map((entry)=><li
-    hidden={entry.data.status !== 'published'}
-    data-status={entry.data.status}
-    data-domain={entry.data.domains.join(' ')}
-    data-entry-kind={entry.data.entry_kind}
-    data-level={entry.data.level}
-    data-user-difficulty={entry.data.user_difficulty}
-    data-year={entry.data.date.getUTCFullYear()}
-  ><a href={withBase(`/physics/${entry.data.id}/`, import.meta.env.BASE_URL)}><span class="mono">{entry.data.id}</span><h2>{entry.data.title}</h2><p>{entry.data.summary}</p><span class="entry-tags">{entry.data.entry_kind} · {entry.data.domains.join(' · ')} · {entry.data.status}</span></a></li>)}</ol>
+
+  <noscript>
+    <p class="archive-noscript shell">Filters require JavaScript. Published notes are shown below.</p>
+  </noscript>
+
+  <div class="archive-ledger shell" data-archive-list>
+    {monthGroups.map((group) => (
+      <section
+        class="archive-month"
+        data-archive-month
+        hidden={!group.entries.some((entry) => entry.data.status === 'published')}
+        aria-labelledby={`month-${group.key}`}
+      >
+        <h2 id={`month-${group.key}`}>{group.label}</h2>
+        <ol>
+          {group.entries.map((entry) => {
+            const isoDate = entry.data.date.toISOString().slice(0, 10);
+            return (
+              <li
+                class="archive-record"
+                data-archive-record
+                hidden={entry.data.status !== 'published'}
+                data-status={entry.data.status}
+                data-domain={entry.data.domains.join(' ')}
+                data-entry-kind={entry.data.entry_kind}
+                data-level={entry.data.level}
+                data-user-difficulty={entry.data.user_difficulty}
+                data-year={entry.data.date.getUTCFullYear()}
+              >
+                <a class="archive-record-link" href={withBase(`/physics/${entry.data.id}/`, import.meta.env.BASE_URL)}>
+                  <time class="record-date" datetime={isoDate} aria-label={fullDateFormatter.format(entry.data.date)}>
+                    <span>{isoDate.slice(8, 10)}</span>
+                    <small>{weekdayFormatter.format(entry.data.date)}</small>
+                  </time>
+                  <div class="record-copy">
+                    <span class="record-id">{entry.data.id}</span>
+                    <h3>{entry.data.title}</h3>
+                    <p>{entry.data.summary}</p>
+                  </div>
+                  <dl class="record-facts">
+                    <div><dt>Format</dt><dd>{humanize(entry.data.entry_kind)}</dd></div>
+                    <div><dt>Level</dt><dd>{humanize(entry.data.level)}</dd></div>
+                    <div><dt>Time</dt><dd>{entry.data.estimated_minutes} min</dd></div>
+                    <div><dt>Topics</dt><dd>{entry.data.domains.map(humanize).join(' · ')}</dd></div>
+                  </dl>
+                </a>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+    ))}
+  </div>
+
+  <p class="archive-empty shell" data-archive-empty hidden>No notes match these filters.</p>
+
   <script>
     const form = document.querySelector<HTMLFormElement>('[data-archive-filters]');
-    const records = [...document.querySelectorAll<HTMLElement>('[data-archive-list] > li')];
+    const records = [...document.querySelectorAll<HTMLElement>('[data-archive-record]')];
+    const monthGroups = [...document.querySelectorAll<HTMLElement>('[data-archive-month]')];
     const count = document.querySelector<HTMLElement>('[data-archive-count]');
-    const applyFilters = () => {
+    const countLabel = document.querySelector<HTMLElement>('[data-archive-count-label]');
+    const clearButton = document.querySelector<HTMLButtonElement>('[data-clear-filters]');
+    const refine = document.querySelector<HTMLDetailsElement>('[data-archive-refine]');
+    const refineCount = document.querySelector<HTMLElement>('[data-refine-count]');
+    const emptyState = document.querySelector<HTMLElement>('[data-archive-empty]');
+
+    const filterNames = ['status', 'domain', 'entry_kind', 'level', 'user_difficulty', 'year'] as const;
+    type FilterName = (typeof filterNames)[number];
+    const defaults: Record<FilterName, string> = {
+      status: 'published',
+      domain: 'all',
+      entry_kind: 'all',
+      level: 'all',
+      user_difficulty: 'all',
+      year: 'all',
+    };
+    const dataKeys: Record<FilterName, string> = {
+      status: 'status',
+      domain: 'domain',
+      entry_kind: 'entryKind',
+      level: 'level',
+      user_difficulty: 'userDifficulty',
+      year: 'year',
+    };
+    const refineNames: FilterName[] = ['status', 'entry_kind', 'level', 'user_difficulty', 'year'];
+
+    const readFilters = (): Record<FilterName, string> => {
+      if (!form) return { ...defaults };
+      const data = new FormData(form);
+      return Object.fromEntries(
+        filterNames.map((name) => [name, String(data.get(name) ?? defaults[name])]),
+      ) as Record<FilterName, string>;
+    };
+
+    const restoreFiltersFromUrl = () => {
       if (!form) return;
-      const filters = Object.fromEntries(new FormData(form));
+      const parameters = new URLSearchParams(window.location.search);
+      for (const name of filterNames) {
+        const value = parameters.get(name);
+        if (value === null) continue;
+        const controls = [
+          ...form.querySelectorAll<HTMLInputElement | HTMLSelectElement>(`[name="${name}"]`),
+        ];
+        for (const control of controls) {
+          if (control instanceof HTMLSelectElement) {
+            if ([...control.options].some((option) => option.value === value)) control.value = value;
+          } else if (control.value === value) {
+            control.checked = true;
+          }
+        }
+      }
+      const restored = readFilters();
+      if (refine && refineNames.some((name) => restored[name] !== defaults[name])) refine.open = true;
+    };
+
+    const syncUrl = (filters: Record<FilterName, string>) => {
+      const url = new URL(window.location.href);
+      for (const name of filterNames) {
+        url.searchParams.delete(name);
+        if (filters[name] !== defaults[name]) url.searchParams.set(name, filters[name]);
+      }
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    };
+
+    const applyFilters = (updateUrl = false) => {
+      if (!form) return;
+      const filters = readFilters();
       let visible = 0;
       for (const record of records) {
-        const matches = Object.entries(filters).every(([key, value]) => {
+        const matches = filterNames.every((name) => {
+          const value = filters[name];
           if (value === 'all') return true;
-          const dataKey = key.replaceAll('_', '');
-          const candidate = record.dataset[dataKey] ?? '';
-          return key === 'domain' ? candidate.split(' ').includes(String(value)) : candidate === value;
+          const candidate = record.dataset[dataKeys[name]] ?? '';
+          return name === 'domain' ? candidate.split(' ').includes(value) : candidate === value;
         });
         record.hidden = !matches;
         if (matches) visible += 1;
       }
+
+      for (const group of monthGroups) {
+        const groupRecords = [...group.querySelectorAll<HTMLElement>('[data-archive-record]')];
+        group.hidden = !groupRecords.some((record) => !record.hidden);
+      }
+
+      const activeFilters = filterNames.filter((name) => filters[name] !== defaults[name]);
+      const activeRefinements = refineNames.filter((name) => filters[name] !== defaults[name]);
       if (count) count.textContent = String(visible);
+      if (countLabel) countLabel.textContent = visible === 1 ? 'note' : 'notes';
+      if (clearButton) clearButton.hidden = activeFilters.length === 0;
+      if (refineCount) refineCount.textContent = activeRefinements.length ? `· ${activeRefinements.length}` : '';
+      if (emptyState) emptyState.hidden = visible !== 0;
+      if (updateUrl) syncUrl(filters);
     };
-    form?.addEventListener('change', applyFilters);
-    form?.addEventListener('reset', () => window.setTimeout(applyFilters));
-    applyFilters();
+
+    let restoringHistory = false;
+    form?.addEventListener('change', () => applyFilters(true));
+    form?.addEventListener('reset', () => {
+      if (restoringHistory) return;
+      window.setTimeout(() => {
+        if (refine) refine.open = false;
+        applyFilters(true);
+      });
+    });
+    window.addEventListener('popstate', () => {
+      restoringHistory = true;
+      form?.reset();
+      restoringHistory = false;
+      restoreFiltersFromUrl();
+      applyFilters();
+    });
+
+    restoreFiltersFromUrl();
+    applyFilters(true);
   </script>
+
+  <style>
+    .archive-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 32px;
+      padding-block: clamp(44px, 6vw, 76px) 28px;
+      border-bottom: 1px solid var(--line);
+    }
+    .archive-header .section-label {
+      margin: 0 0 8px;
+    }
+    .archive-header h1 {
+      margin: 0;
+      font-size: clamp(40px, 4.5vw, 52px);
+      letter-spacing: -0.035em;
+    }
+    .archive-result-count {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin: 0 0 5px;
+      color: var(--muted);
+      font: 11px var(--mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .archive-result-count strong {
+      color: var(--ink);
+      font: 600 34px/1 var(--serif);
+      letter-spacing: -0.035em;
+    }
+    .archive-index {
+      padding-block: 18px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .domain-filter {
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      gap: 16px;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+    .domain-filter legend {
+      float: left;
+      width: 76px;
+      padding: 5px 0 0;
+      color: var(--muted);
+      font: 10px var(--mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .domain-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px 17px;
+      min-width: 0;
+    }
+    .domain-choice {
+      position: relative;
+      cursor: pointer;
+    }
+    .domain-choice input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .domain-choice span {
+      display: block;
+      padding: 4px 0 3px;
+      border-bottom: 1px solid transparent;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .domain-choice input:checked + span {
+      border-bottom-color: var(--blue);
+      color: var(--ink);
+    }
+    .domain-choice input:focus-visible + span,
+    .archive-refine summary:focus-visible,
+    .refine-grid select:focus-visible {
+      outline: 3px solid var(--violet);
+      outline-offset: 3px;
+    }
+    .archive-refinement {
+      display: flex;
+      align-items: start;
+      gap: 20px;
+      margin: 13px 0 0 92px;
+      padding-top: 11px;
+      border-top: 1px dotted var(--line);
+    }
+    .archive-refine {
+      flex: 1;
+      min-width: 0;
+    }
+    .archive-refine summary {
+      width: max-content;
+      color: var(--blue);
+      cursor: pointer;
+      font: 11px var(--mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .refine-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 18px;
+      padding-top: 18px;
+    }
+    .refine-grid label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font: 10px var(--mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .refine-grid select {
+      width: 100%;
+      min-height: 34px;
+      padding: 4px 22px 4px 0;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      border-radius: 0;
+      background: transparent;
+      color: var(--ink);
+      font: 13px var(--sans);
+      text-transform: none;
+    }
+    .archive-clear {
+      min-height: auto;
+      margin: -2px 0 0 auto;
+      padding: 0 0 3px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font: 11px var(--mono);
+      white-space: nowrap;
+    }
+    .archive-clear[hidden],
+    .archive-month[hidden],
+    .archive-record[hidden],
+    .archive-empty[hidden] {
+      display: none;
+    }
+    .archive-noscript,
+    .archive-empty {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .archive-noscript {
+      padding-block: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .archive-ledger {
+      padding-bottom: 86px;
+    }
+    .archive-month {
+      padding-top: 38px;
+    }
+    .archive-month h2 {
+      margin: 0 0 13px;
+      color: var(--ink);
+      font-size: 24px;
+      letter-spacing: -0.02em;
+    }
+    .archive-month ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .archive-record {
+      border-top: 1px solid var(--line);
+    }
+    .archive-record-link {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr) minmax(210px, 270px);
+      gap: 28px;
+      align-items: start;
+      padding: 19px 0 21px;
+      text-decoration: none;
+    }
+    .record-date {
+      display: grid;
+      justify-items: start;
+      color: var(--blue);
+    }
+    .record-date > span {
+      font: 600 36px/0.95 var(--serif);
+      letter-spacing: -0.045em;
+    }
+    .record-date small {
+      margin-top: 7px;
+      color: var(--muted);
+      font: 9px var(--mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .record-copy {
+      min-width: 0;
+    }
+    .record-id {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font: 10px var(--mono);
+      letter-spacing: 0.06em;
+    }
+    .record-copy h3 {
+      margin: 0;
+      font-size: clamp(22px, 2vw, 26px);
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+    .record-copy p {
+      max-width: 70ch;
+      margin: 10px 0 0;
+      color: #41565f;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    .record-facts {
+      display: grid;
+      gap: 7px;
+      margin: 1px 0 0;
+    }
+    .record-facts div {
+      display: grid;
+      grid-template-columns: 45px minmax(0, 1fr);
+      gap: 8px;
+      padding-top: 6px;
+      border-top: 1px dotted var(--line);
+    }
+    .record-facts dt {
+      color: var(--muted);
+      font: 9px var(--mono);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .record-facts dd {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .archive-empty {
+      margin-top: 34px;
+      padding: 24px 0 86px;
+      border-top: 1px solid var(--line);
+    }
+    @media (hover: hover) {
+      .domain-choice:hover span,
+      .archive-clear:hover {
+        color: var(--ink);
+      }
+      .archive-record-link:hover h3 {
+        color: var(--blue);
+      }
+    }
+    @media (max-width: 900px) {
+      .refine-grid {
+        grid-template-columns: repeat(3, minmax(120px, 1fr));
+      }
+      .archive-record-link {
+        grid-template-columns: 62px minmax(0, 1fr);
+      }
+      .record-facts {
+        grid-column: 2;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 620px) {
+      .archive-header {
+        gap: 16px;
+        padding-block: 40px 22px;
+      }
+      .archive-header h1 {
+        font-size: 42px;
+      }
+      .archive-result-count strong {
+        font-size: 28px;
+      }
+      .domain-filter {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .domain-filter legend {
+        float: none;
+        width: auto;
+        padding-top: 0;
+      }
+      .archive-refinement {
+        margin-left: 0;
+      }
+      .refine-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .archive-month {
+        padding-top: 32px;
+      }
+      .archive-record-link {
+        grid-template-columns: 46px minmax(0, 1fr);
+        gap: 16px;
+        padding-block: 20px 22px;
+      }
+      .record-date > span {
+        font-size: 30px;
+      }
+      .record-copy h3 {
+        font-size: 22px;
+      }
+      .record-copy p {
+        font-size: 13px;
+      }
+      .record-facts {
+        gap: 5px 12px;
+      }
+      .record-facts div {
+        grid-template-columns: 1fr;
+        gap: 3px;
+      }
+    }
+    @media (max-width: 420px) {
+      .archive-result-count {
+        display: grid;
+        justify-items: end;
+        gap: 2px;
+      }
+      .refine-grid,
+      .record-facts {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </BaseLayout>

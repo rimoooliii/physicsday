@@ -18,7 +18,7 @@ describe('machine-readable article routes', () => {
 
     expect(markdown).toContain('id: PHYS-2026-07-21-01');
     expect(json.id).toBe('PHYS-2026-07-21-01');
-    expect(json.content_markdown).toContain("## Today's Fracture");
+    expect(json.content_markdown).toContain('## Key claim');
     expect(json.content_sha256).toMatch(/^[a-f0-9]{64}$/);
     expect(json.formula_count).toBe(20);
     expect(json.formula_count).toBe(json.formulas.length);

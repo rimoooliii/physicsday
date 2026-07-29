@@ -12,20 +12,20 @@ const exact = entryDate === today;
 <BaseLayout title="Today" description="The latest daily physics training entry." canonicalPath="/today/">
   <section class="today-focus shell">
     <div class="today-main">
-      <p class="section-label">Daily training · UTC+8</p>
+      <p class="section-label">Daily problem · UTC+8</p>
       <p class="today-date mono">{exact ? today : `Latest · ${entryDate ?? today}`}</p>
       <h1>{entry?.data.title ?? 'No daily entry'}</h1>
-      <p class="lede">{entry?.data.summary ?? 'The next durable training record has not been published yet.'}</p>
-      {entry && <p class="today-status">{exact ? 'Today’s session is ready.' : `No session is dated ${today}; continuing from the latest published daily.`}</p>}
-      {entry && <a class="primary-action" href={withBase(`/physics/${entry.data.id}/`, import.meta.env.BASE_URL)}>Begin {entry.data.id} <span>→</span></a>}
+      <p class="lede">{entry?.data.summary ?? 'The next daily problem has not been published yet.'}</p>
+      {entry && <p class="today-status">{exact ? 'Today’s problem is ready.' : `No note is dated ${today}. Showing the latest daily problem from ${entryDate}.`}</p>}
+      {entry && <a class="primary-action" href={withBase(`/physics/${entry.data.id}/`, import.meta.env.BASE_URL)}>Read {entry.data.id} <span>→</span></a>}
     </div>
     {entry && <aside class="today-ledger" aria-label="Session coordinates">
-      <p class="section-label">Ledger coordinates</p>
+      <p class="section-label">About this note</p>
       <dl>
-        <div><dt>Record</dt><dd>{entry.data.id}</dd></div>
+        <div><dt>ID</dt><dd>{entry.data.id}</dd></div>
         <div><dt>Level</dt><dd>{entry.data.level}</dd></div>
-        <div><dt>Time</dt><dd>{entry.data.estimated_minutes} min</dd></div>
-        <div><dt>Domain</dt><dd>{entry.data.domains.join(' · ')}</dd></div>
+        <div><dt>Estimated time</dt><dd>{entry.data.estimated_minutes} min</dd></div>
+        <div><dt>Topics</dt><dd>{entry.data.domains.map((domain) => domain.replaceAll('-', ' ')).join(' · ')}</dd></div>
       </dl>
     </aside>}
   </section>

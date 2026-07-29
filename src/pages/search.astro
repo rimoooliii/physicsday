@@ -8,6 +8,6 @@ const bundlePath = withBase('/pagefind/', base);
 ---
 <BaseLayout title="Search" description="Search the Physics Ledger." canonicalPath="/search/">
   <link slot="head" href={pagefindCss} rel="stylesheet" />
-  <section class="page-intro shell"><p class="section-label">Search</p><h1>Find a pressure point</h1><div id="search"><pagefind-config bundle-path={bundlePath}></pagefind-config><pagefind-input autofocus></pagefind-input><pagefind-summary></pagefind-summary><pagefind-results></pagefind-results><noscript><p>Search requires JavaScript. The archive remains fully available.</p></noscript></div></section>
+  <section class="page-intro shell"><p class="section-label">Search</p><h1>Search notes and equations</h1><p>Search a concept, equation, author, or permanent ID.</p><div id="search"><pagefind-config bundle-path={bundlePath}></pagefind-config><pagefind-input autofocus></pagefind-input><pagefind-summary></pagefind-summary><pagefind-results></pagefind-results><noscript><p>Search requires JavaScript. The archive remains fully available.</p></noscript></div></section>
   <script is:inline type="module" src={pagefindScript}></script>
 </BaseLayout>

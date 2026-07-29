@@ -5,7 +5,7 @@ const entries=(await getCollection('physics')).filter((e)=>e.data.status==='publ
 const domains=[...new Set(entries.flatMap((e)=>e.data.domains))];
 ---
 <BaseLayout title="Progress" description="Metadata-derived physics practice progress." canonicalPath="/progress/">
-  <section class="page-intro shell"><p class="section-label">Progress</p><h1>Coverage without pretending to measure understanding</h1><p>These counts come from article metadata, not comment activity.</p></section>
-  <section class="metrics shell"><div><strong>{entries.length}</strong><span>durable entries</span></div><div><strong>{domains.length}</strong><span>domains touched</span></div><div><strong>{entries.filter((e)=>e.data.user_difficulty==='too-hard').length}</strong><span>marked too hard</span></div></section>
+  <section class="page-intro shell"><p class="section-label">Progress</p><h1>Topic coverage</h1><p>Counts reflect published note metadata; they do not measure mastery.</p></section>
+  <section class="metrics shell"><div><strong>{entries.length}</strong><span>published notes</span></div><div><strong>{domains.length}</strong><span>topics represented</span></div><div><strong>{entries.filter((e)=>e.data.user_difficulty==='too-hard').length}</strong><span>marked too hard</span></div></section>
   <section class="shell prose"><h2>Domain coverage</h2><ul>{domains.map((domain)=><li>{domain.replaceAll('-',' ')}</li>)}</ul></section>
 </BaseLayout>

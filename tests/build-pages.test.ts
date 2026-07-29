@@ -31,6 +31,10 @@ describe('human site build', () => {
     expect(html).toContain('Copy LaTeX');
     expect(html).toContain('data-copy-value');
     expect(html).toContain('article-navigation');
+    expect(html).toContain('article-rail');
+    expect(html).toContain('About this note');
+    expect(html).toContain('In this note');
+    expect(html).not.toContain('fracture-rule');
   });
 
   it('visually hides assistive MathML without removing it from the page', async () => {
@@ -73,5 +77,8 @@ describe('human site build', () => {
     expect(html).toContain('name="level"');
     expect(html).toContain('name="user_difficulty"');
     expect(html).toContain('name="year"');
+    expect(html).toContain('data-archive-refine');
+    expect(html).toContain('data-archive-record');
+    expect(html).toContain('type="radio" name="domain" value="all" checked');
   });
 });

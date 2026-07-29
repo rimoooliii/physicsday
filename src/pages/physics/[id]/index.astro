@@ -10,12 +10,15 @@ export async function getStaticPaths() {
   return entries.map((entry) => ({ params: { id: entry.data.id }, props: { entry } }));
 }
 const { entry } = Astro.props as { entry: CollectionEntry<'physics'> };
-const { Content } = await render(entry);
+const { Content, headings } = await render(entry);
 const base = import.meta.env.BASE_URL;
 const articlePath = `/physics/${entry.data.id}/`;
 const markdownUrl = new URL(withBase(`/physics/${entry.data.id}.md`, base), Astro.site);
 const jsonUrl = new URL(withBase(`/physics/${entry.data.id}.json`, base), Astro.site);
 const permanentUrl = new URL(withBase(articlePath, base), Astro.site).toString();
+const outline = headings.filter((heading) => heading.depth === 2);
+const furtherReading = headings.find((heading) => /further reading/i.test(heading.text));
+const assumptions = headings.find((heading) => /assumptions?/i.test(heading.text));
 const allEntries = await getCollection('physics');
 const physicsEntries = allEntries.map((item): PhysicsEntry => ({
   id: item.data.id,
@@ -27,27 +30,81 @@ const context = articleContext(physicsEntries, entry.data.id);
   <link slot="head" rel="alternate" type="text/markdown" href={markdownUrl} />
   <link slot="head" rel="alternate" type="application/json" href={jsonUrl} />
   <article class="article-shell">
-    <header class="article-header">
-      <div class="fracture-rule"><span></span></div>
-      <p class="mono article-id">{entry.data.id}</p>
-      <h1>{entry.data.title}</h1>
-      <p class="lede">{entry.data.summary}</p>
-      <dl class="metadata"><div><dt>Date</dt><dd>{entry.data.date.toISOString().slice(0,10)}</dd></div><div><dt>Kind</dt><dd>{entry.data.entry_kind}</dd></div><div><dt>Level</dt><dd>{entry.data.level}</dd></div><div><dt>Time</dt><dd>{entry.data.estimated_minutes} min</dd></div></dl>
-      <div hidden>{entry.data.domains.map((domain) => <span data-pagefind-filter="domain">{domain}</span>)}</div>
-      {entry.data.status !== 'published' && <aside class={`lifecycle ${entry.data.status}`}>This record is {entry.data.status}.{context.supersededBy && <> Continue with <a href={withBase(`/physics/${context.supersededBy}/`, base)}>{context.supersededBy}</a>.</>}</aside>}
-      {context.replaces && <aside class="lifecycle relationship">This record replaces <a href={withBase(`/physics/${context.replaces}/`, base)}>{context.replaces}</a>.</aside>}
-    </header>
-    <div class="article-body" data-pagefind-body><Content /></div>
-    <footer class="article-tools">
-      <h2>Use this record elsewhere</h2>
-      <p>Reference <strong>{entry.data.id}</strong> or its permanent URL in a new AI conversation.</p>
-      <div class="tool-links"><button type="button" class="copy-value" data-copy-value={permanentUrl}>Copy permanent URL</button><a href={markdownUrl}>Source Markdown</a><a href={jsonUrl}>Machine-readable JSON</a></div>
-    </footer>
+    <div class="article-grid">
+      <header class="article-header">
+        <p class="mono article-id">{entry.data.id}</p>
+        <h1>{entry.data.title}</h1>
+        <p class="lede">{entry.data.summary}</p>
+        <div hidden>{entry.data.domains.map((domain) => <span data-pagefind-filter="domain">{domain}</span>)}</div>
+        {entry.data.status !== 'published' && <aside class={`lifecycle ${entry.data.status}`}>This note is {entry.data.status}.{context.supersededBy && <> Continue with <a href={withBase(`/physics/${context.supersededBy}/`, base)}>{context.supersededBy}</a>.</>}</aside>}
+        {context.replaces && <aside class="lifecycle relationship">This note replaces <a href={withBase(`/physics/${context.replaces}/`, base)}>{context.replaces}</a>.</aside>}
+      </header>
+
+      <aside class="article-rail" aria-label="About and navigation">
+        <section class="rail-section">
+          <p class="section-label">About this note</p>
+          <dl class="rail-metadata">
+            <div><dt>Date</dt><dd>{entry.data.date.toISOString().slice(0,10)}</dd></div>
+            <div><dt>Format</dt><dd>{entry.data.entry_kind.replaceAll('-', ' ')}</dd></div>
+            <div><dt>Level</dt><dd>{entry.data.level.replaceAll('-', ' ')}</dd></div>
+            <div><dt>Estimated time</dt><dd>{entry.data.estimated_minutes} min</dd></div>
+            <div class="rail-topics"><dt>Topics</dt><dd>{entry.data.domains.map((domain) => domain.replaceAll('-', ' ')).join(' · ')}</dd></div>
+          </dl>
+        </section>
+
+        {outline.length > 0 && (
+          <details class="article-toc" open>
+            <summary>In this note</summary>
+            <ol>
+              {outline.map((heading) => <li><a href={`#${heading.slug}`}>{heading.text}</a></li>)}
+            </ol>
+          </details>
+        )}
+
+        {(assumptions || furtherReading) && (
+          <section class="rail-section rail-shortcuts">
+            <p class="section-label">Study apparatus</p>
+            <ul>
+              {assumptions && <li><span>A</span><a href={`#${assumptions.slug}`}>Scope and assumptions</a></li>}
+              {furtherReading && <li><span>R</span><a href={`#${furtherReading.slug}`}>Further reading</a></li>}
+            </ul>
+          </section>
+        )}
+
+        <section class="rail-section rail-files">
+          <p class="section-label">Reference files</p>
+          <ul>
+            <li><a href={markdownUrl}>Source Markdown</a></li>
+            <li><a href={jsonUrl}>Machine-readable JSON</a></li>
+          </ul>
+        </section>
+      </aside>
+
+      <div class="article-body" data-pagefind-body><Content /></div>
+
+      <footer class="article-tools">
+        <h2>Cite or reuse this note</h2>
+        <p>Use <strong>{entry.data.id}</strong> or its permanent URL when continuing the discussion elsewhere.</p>
+        <div class="tool-links"><button type="button" class="copy-value" data-copy-value={permanentUrl}>Copy permanent URL</button><a href={markdownUrl}>Source Markdown</a><a href={jsonUrl}>Machine-readable JSON</a></div>
+      </footer>
+
+      <GiscusPanel articleId={entry.data.id} />
+    </div>
+
     <nav class="article-navigation" aria-label="Article navigation">
-      <span>{context.previous ? <a rel="prev" href={withBase(`/physics/${context.previous}/`, base)}>← Previous record<br/><strong>{context.previous}</strong></a> : 'Beginning of ledger'}</span>
+      <span>{context.previous ? <a rel="prev" href={withBase(`/physics/${context.previous}/`, base)}>← Previous note<br/><strong>{context.previous}</strong></a> : 'First note'}</span>
       <a href={withBase('/archive/', base)}>Archive</a>
-      <span>{context.next ? <a rel="next" href={withBase(`/physics/${context.next}/`, base)}>Next record →<br/><strong>{context.next}</strong></a> : 'Latest record'}</span>
+      <span>{context.next ? <a rel="next" href={withBase(`/physics/${context.next}/`, base)}>Next note →<br/><strong>{context.next}</strong></a> : 'Latest note'}</span>
     </nav>
-    <GiscusPanel articleId={entry.data.id} />
   </article>
+  <script>
+    const tableOfContents = document.querySelector<HTMLDetailsElement>('.article-toc');
+    const compactLayout = window.matchMedia('(max-width: 1050px)');
+    const syncTableOfContents = (matches: boolean) => {
+      if (!tableOfContents) return;
+      tableOfContents.open = !matches;
+    };
+    syncTableOfContents(compactLayout.matches);
+    compactLayout.addEventListener('change', (event) => syncTableOfContents(event.matches));
+  </script>
 </BaseLayout>

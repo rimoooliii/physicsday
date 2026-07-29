@@ -5,20 +5,42 @@ import ContinuityTrace from '../components/ContinuityTrace.astro';
 import { withBase } from '../lib/site';
 const entries = (await getCollection('physics')).filter((entry) => entry.data.status === 'published').sort((a,b) => b.data.date.getTime()-a.data.date.getTime() || b.data.id.localeCompare(a.data.id));
 const latest = entries[0];
+const topicCounts = [...entries.reduce((counts, entry) => {
+  for (const domain of entry.data.domains) counts.set(domain, (counts.get(domain) ?? 0) + 1);
+  return counts;
+}, new Map<string, number>())].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 ---
-<BaseLayout title="Daily advanced theoretical physics" description="A durable ledger for daily theoretical-physics training.">
+<BaseLayout title="Daily advanced theoretical physics" description="Problems, derivations, exercises, and references in advanced theoretical physics.">
   <section class="hero shell">
-    <div class="eyebrow">Current fracture · {latest?.data.date.toISOString().slice(0,10)}</div>
-    <h1 class="hero-title">{latest?.data.title ?? 'No published session yet'}</h1>
-    <p class="lede">{latest?.data.summary ?? 'Add a validated Markdown entry to begin the ledger.'}</p>
-    {latest && <a class="primary-action" href={withBase(`/physics/${latest.data.id}/`, import.meta.env.BASE_URL)}>Begin today’s problem <span>→</span></a>}
+    <div class="hero-main">
+      <div class="eyebrow">Latest problem · {latest?.data.date.toISOString().slice(0,10)}</div>
+      <h1 class="hero-title">{latest?.data.title ?? 'No published note yet'}</h1>
+      <p class="lede">{latest?.data.summary ?? 'The first note has not been published yet.'}</p>
+      {latest && <a class="primary-action" href={withBase(`/physics/${latest.data.id}/`, import.meta.env.BASE_URL)}>Read today’s problem <span>→</span></a>}
+    </div>
+    {latest && (
+      <aside class="hero-meta" aria-label="About the latest note">
+        <p class="section-label">About this note</p>
+        <dl>
+          <div><dt>ID</dt><dd>{latest.data.id}</dd></div>
+          <div><dt>Format</dt><dd>{latest.data.entry_kind.replaceAll('-', ' ')}</dd></div>
+          <div><dt>Estimated time</dt><dd>{latest.data.estimated_minutes} min</dd></div>
+          <div><dt>Topics</dt><dd>{latest.data.domains.map((domain) => domain.replaceAll('-', ' ')).join(' · ')}</dd></div>
+        </dl>
+      </aside>
+    )}
   </section>
   <section class="ledger-grid shell">
     <div>
-      <p class="section-label">The practice</p>
-      <h2>Conversation is temporary. The conceptual trail is not.</h2>
-      <p>Each entry preserves the provocation, equations, exercise, response pressure, and continuity signal needed for the next encounter.</p>
+      <p class="section-label">Topics</p>
+      <h2>Topics covered so far</h2>
+      <p>Each note states a question, develops the argument, tests its assumptions, and ends with an exercise and references.</p>
+      <ul class="topic-index">
+        {topicCounts.map(([topic, count]) => (
+          <li><span>{topic.replaceAll('-', ' ')}</span><strong>{count}</strong></li>
+        ))}
+      </ul>
     </div>
-    <div><p class="section-label">Last fourteen</p><ContinuityTrace entries={entries.slice(0,14)} /></div>
+    <div><p class="section-label">Recent notes</p><ContinuityTrace entries={entries.slice(0,14)} /></div>
   </section>
 </BaseLayout>

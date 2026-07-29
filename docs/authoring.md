@@ -85,17 +85,17 @@ MathJax 不是完整 TeX 发行版。TikZ、tikz-feynman、circuitikz、PGFPlots
 
 周一至周六的标准 daily 包含：
 
-1. Today's Fracture
+1. Key claim
 2. Theme
-3. Core Provocation
-4. Minimal Setup
-5. Builder、Skeptic、Translator 三个 lenses
-6. deliberately false Thought Striker
-7. Collision
+3. Guiding question
+4. Setup
+5. Analysis，包含 Derivation、Scope and assumptions、Physical interpretation
+6. False claim to diagnose
+7. What follows — and what does not
 8. 一个练习、两个递进提示、两个 oral checks
 9. 分隔显示的 Solution
-10. Exit Ticket
-11. Continuity Ledger
+10. Check your understanding
+11. Connections and next step
 
 周日使用 `weekly-consolidation`。网站只强制元数据和 TeX 正确，不尝试自动判断物理内容真伪。
 

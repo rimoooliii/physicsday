@@ -1,5 +1,9 @@
 # Physics Ledger 写作与发布规范
 
+本文定义文章源文件的稳定格式。需要实际上传步骤时，请转到[发布指南](../PUBLISHING_GUIDE.md)；需要了解项目入口和本地命令时，请转到[仓库 README](../README.md)。
+
+`src/content/physics/` 中的 Markdown 是唯一内容源。网页、搜索索引、`.md` 端点和 `.json` 端点都由它生成。
+
 ## 稳定身份
 
 文件名、frontmatter `id` 和永久 URL 使用同一个 ID：
@@ -37,10 +41,13 @@ estimated_minutes: 25
 
 受控字段值以 `src/lib/content/types.ts` 为唯一代码来源。主要取值为：
 
+- `language`: `en`, `zh-CN`, `bilingual`
 - `entry_kind`: `daily`, `supplement`, `spaced-retrieval`, `weekly-consolidation`
 - `status`: `draft`, `published`, `superseded`, `withdrawn`
 - `user_difficulty`: `unrated`, `too-easy`, `appropriate`, `too-hard`
 - `level`: `graduate`, `graduate-advanced`, `research`
+
+`domains` 至少包含一个受控主题。完整列表直接查看 `src/lib/content/types.ts`；不要在文档和代码之间另建一套标签。
 
 `replacement` 不是文章类型。替代文章仍保留自己的内容类型：
 
@@ -79,6 +86,8 @@ $$
 
 每个文件使用隔离的 MathJax 环境。未定义宏、畸形 TeX 和错误节点会阻止发布，并报告文件、公式序号、真实源文件行号及 TeX 原文。
 
+展示公式在阅读页中由上下两条细横线界定。横线属于网站排版，不要在 Markdown 中手写 `<hr>`、表格或边框来模拟。
+
 MathJax 不是完整 TeX 发行版。TikZ、tikz-feynman、circuitikz、PGFPlots、自定义宏包或完整文档 preamble 不在第一版支持范围内；它们应预先生成独立图片后再引用。
 
 ## 页边注
@@ -95,6 +104,34 @@ The paragraph being annotated begins here.
 ```
 
 标签可省略，此时显示为 `Margin note`。宽屏中边注进入正文右侧页边；窄屏中它变为可展开的正文内注释。边注应短而少；如果连续边注在页边拥挤，应合并它们或改写正文。
+
+页边注必须紧邻被解释的段落。不要用它承载必读证明步骤，因为窄屏读者可能在折叠状态下略过它。
+
+## 提示与解答
+
+提示使用普通折叠区：
+
+```html
+<details>
+<summary>Hint</summary>
+
+提示内容。
+
+</details>
+```
+
+完整解答使用带 `solution` 类名的折叠区：
+
+```html
+<details class="solution">
+<summary>Solution</summary>
+
+解答内容。
+
+</details>
+```
+
+开始与结束标签之间保留空行，以便内部 Markdown 正确解析。每个标签必须闭合，不要交叉嵌套。
 
 ## Daily 结构
 
@@ -114,9 +151,33 @@ The paragraph being annotated begins here.
 
 周日使用 `weekly-consolidation`。网站只强制元数据和 TeX 正确，不尝试自动判断物理内容真伪。
 
+结构是编辑基线，不是必须机械复制的品牌口号。标题应直接说明物理问题；章节名优先使用领域内通行术语，避免为了气氛堆叠抽象概念。
+
 ## 草稿与撤回
 
 - `draft` 不生成页面、搜索记录、sitemap 或机器端点。
 - `superseded` 保留永久 URL，并链接到替代链的当前文章。
 - `withdrawn` 保留 URL 和撤回提示，但不声明有替代文章。
 - 普通旧文章仍为 `published`；进入 Archive 不等于改变状态。
+
+## 发布前检查
+
+在仓库根目录运行：
+
+```text
+npm run validate
+npm run check
+npm run build
+```
+
+其中 `validate` 检查所有文章的 frontmatter、文件名、替代关系与 TeX；`check` 还会运行测试和 Astro 类型检查；`build` 生成静态网页与搜索索引。
+
+人工预览还应确认：
+
+- 标题和摘要准确，不使用无信息量的口号。
+- 正文、目录和右侧页边注在宽屏中保持平衡。
+- 展示公式有上下细横线，且没有被横向裁切。
+- 手机宽度下目录与边注不会遮挡正文。
+- Hint 与 Solution 的折叠状态和内容顺序正确。
+
+提交到 Pull Request 只会校验和构建；合并或直接推送到 `main` 才会部署。完整流程见[发布指南](../PUBLISHING_GUIDE.md)。

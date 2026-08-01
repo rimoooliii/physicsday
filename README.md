@@ -1,92 +1,112 @@
 # Physics Ledger
 
-Physics Ledger 是一个个人理论物理训练档案。ChatGPT 或 Codex 在聊天中生成完整 Markdown；你把文件保存到仓库；网站负责校验、公式排版、搜索和发布。它不需要 OpenAI API、数据库、RAG 或账户系统。
+一个面向高阶理论物理训练的静态出版系统。原始材料保存在 Markdown 中；构建过程负责校验元数据与 TeX、排版公式、生成搜索索引，并发布为可长期引用的网页。
 
-## 日常使用
+[在线阅读](https://rimoooliii.github.io/physicsday/) · [发布新文章](PUBLISHING_GUIDE.md) · [写作规范](docs/authoring.md) · [文档索引](docs/README.md)
 
-1. 在聊天中生成一篇带完整 frontmatter 的 Markdown 文章。
-2. 为它分配当天尚未使用的永久 ID，例如 `PHYS-2026-07-21-02`。
-3. 保存为 `src/content/physics/PHYS-2026-07-21-02.md`。
-4. 运行 `npm run validate`。只有元数据、替代关系和全部 TeX 均通过才可发布。
-5. 运行 `npm run dev` 预览，确认后提交并推送。
-6. 以后提问时直接提供文章 URL 或 ID。
+## 阅读体验
 
-首次在新电脑使用：
+- **正文优先。** 文章采用居中的宽正文栏；宽屏显示左侧目录和右侧页边注，注释不会挤窄正文。
+- **数学排版。** 展示公式由上下两条细线界定，构建时渲染为 SVG，并保留原始 TeX 以便复制。
+- **清楚的入口。** Today 阅读最新训练，Archive 按主题与类型浏览，Progress 查看覆盖情况，Search 全文检索。
+- **稳定引用。** 每篇文章使用永久 ID，同时提供适合阅读、复用和程序处理的三种表示。
+- **离线可构建。** 不依赖 OpenAI API、数据库、RAG 或账户系统；任意能输出 Markdown 的工具都可参与写作。
+
+## 内容如何流动
+
+```text
+Markdown 原稿
+    ↓ 元数据、关系与 TeX 校验
+静态网页 + 原始 Markdown + JSON
+    ↓ Pagefind 索引
+GitHub Pages
+```
+
+文章的唯一来源是 `src/content/physics/PHYS-YYYY-MM-DD-NN.md`。聊天记录、评论和网页都不是原稿的替代品。
+
+## 快速开始
+
+本地环境建议使用 Node.js 24，与部署工作流保持一致。
 
 ```text
 npm ci
 npm run dev
 ```
 
-完整发布前检查：
+开发服务器会给出本地地址。修改文章或页面后，浏览器会自动刷新。
+
+发布前运行完整检查：
 
 ```text
 npm run check
 npm run build
 ```
 
-## GitHub 与部署
+## 添加一篇文章
 
-当前仓库对应：
+1. 分配一个当天尚未使用的永久 ID，例如 `PHYS-2026-07-21-02`。
+2. 按[写作规范](docs/authoring.md)创建同名 Markdown 文件。
+3. 运行 `npm run validate`，检查元数据、替代关系和全部 TeX。
+4. 本地预览正文、公式、目录与页边注。
+5. 运行完整检查后提交。合并或推送到 `main` 会触发正式部署。
 
-```text
-https://github.com/rimoooliii/physicsday.git
-```
+如果不使用本地 Git，请按[发布指南](PUBLISHING_GUIDE.md)通过 GitHub 网页上传。该指南也包含可直接交给 AI 的排版提示词和每周复盘流程。
 
-手动连接新的本地副本：
+## 页边注与公式
 
-```text
-git remote add origin https://github.com/rimoooliii/physicsday.git
-git push -u origin main
-```
-
-仓库的 GitHub Pages 应选择 **GitHub Actions** 作为构建来源。工作流使用：
+页边注写在它所解释的段落之前：
 
 ```text
-SITE_URL=https://rimoooliii.github.io
-BASE_PATH=/physicsday
+> [!margin: Logical scope]
+> The anomaly is exact; the infrared conclusion needs extra assumptions.
+
+The paragraph being annotated begins here.
 ```
 
-公开地址预期为：
+宽屏时注释进入右侧页边；窄屏时它成为正文内的可展开注释。页边只放符号约定、适用范围、参考资料或短推导，长论证仍应留在正文。
+
+展示公式继续使用双美元符号：
 
 ```text
-https://rimoooliii.github.io/physicsday/
+$$
+Z=\Tr\!\left(\ee^{-\beta H}\right)
+$$
 ```
 
-Pull Request 只验证和生成构建产物；只有 `main` 的推送会部署。同一个已生成的 `dist/` 产物被直接部署，不会再次构建。
+网站会为展示公式恢复上下细横线。完整的宏、结构与限制见[写作规范](docs/authoring.md)。
 
-## 文章的三个表示
+## 永久地址
 
-每篇公开文章同时拥有：
+一篇已发布文章会生成三个端点：
 
-```text
-/physics/PHYS-2026-07-21-01/
-/physics/PHYS-2026-07-21-01.md
-/physics/PHYS-2026-07-21-01.json
-```
+| 用途 | 地址 |
+| --- | --- |
+| 阅读 | `/physics/PHYS-2026-07-21-01/` |
+| 原始内容 | `/physics/PHYS-2026-07-21-01.md` |
+| 结构化数据 | `/physics/PHYS-2026-07-21-01.json` |
 
-HTML 用于阅读；Markdown 保留原始 frontmatter 和 TeX；JSON 提供规范化元数据、正文、公式顺序、真实源文件行号和 SHA-256。三个端点由同一源文件生成。
+HTML 用于阅读；Markdown 保留 frontmatter 和 TeX；JSON 提供规范化元数据、正文、公式顺序、源文件行号和 SHA-256。三个端点由同一源文件生成。
+
+## 部署
+
+仓库通过 [GitHub Actions](https://github.com/rimoooliii/physicsday/actions) 发布到 [GitHub Pages](https://rimoooliii.github.io/physicsday/)。
+
+Pull Request 会安装依赖、运行 `npm run check`、构建网站并上传构建产物，但不会部署。只有 `main` 的推送会部署同一个已经通过检查的 `dist/`，不会在部署阶段再次构建。
+
+站点路径与 giscus 参数已写入 `.github/workflows/pages.yml`。新的本地副本通常不需要配置环境变量；只有测试其他域名或子路径时才参考 `.env.example`。
 
 ## 评论
 
-评论使用可选的 [giscus](https://giscus.app/) 和公开 GitHub Discussions。未配置时网站仍可完整使用，只显示说明文字。
+文章评论使用 [giscus](https://giscus.app/) 和公开 GitHub Discussions。评论需要 GitHub 登录并公开显示；它适合讨论，不应成为唯一的学习记录。
 
-配置步骤：
-
-1. 在仓库 Settings → General 中启用 Discussions。
-2. 在 giscus.app 选择 `rimoooliii/physicsday` 及 Discussions 分类。
-3. 把生成的 repository ID 和 category ID 配置为构建环境变量 `PUBLIC_GISCUS_REPO_ID` 与 `PUBLIC_GISCUS_CATEGORY_ID`。
-
-公开评论需要 GitHub 登录，并会公开显示；评论不被当作学习档案的唯一数据源。
-
-## 项目命令
+## 常用命令
 
 | 命令 | 作用 |
 | --- | --- |
-| `npm run dev` | 本地预览 |
+| `npm run dev` | 启动本地预览 |
 | `npm run validate` | 校验元数据、ID、替代图与 TeX |
 | `npm test` | 运行自动化测试 |
-| `npx astro check` | 类型与 Astro 页面检查 |
-| `npm run build` | 生成静态网站和 Pagefind 索引 |
+| `npm run check` | 依次执行内容校验、测试和 Astro 检查 |
+| `npm run build` | 生成静态网站与 Pagefind 搜索索引 |
 
-详细写作规则见 [`docs/authoring.md`](docs/authoring.md)。设计与实施记录位于 `docs/superpowers/`。
+当前说明位于 `docs/`。`docs/superpowers/` 保存早期设计与实施记录，用于追溯决策，可能不再描述现在的界面。

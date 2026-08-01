@@ -17,8 +17,6 @@ const markdownUrl = new URL(withBase(`/physics/${entry.data.id}.md`, base), Astr
 const jsonUrl = new URL(withBase(`/physics/${entry.data.id}.json`, base), Astro.site);
 const permanentUrl = new URL(withBase(articlePath, base), Astro.site).toString();
 const outline = headings.filter((heading) => heading.depth === 2);
-const furtherReading = headings.find((heading) => /further reading/i.test(heading.text));
-const assumptions = headings.find((heading) => /assumptions?/i.test(heading.text));
 const allEntries = await getCollection('physics');
 const physicsEntries = allEntries.map((item): PhysicsEntry => ({
   id: item.data.id,
@@ -35,50 +33,26 @@ const context = articleContext(physicsEntries, entry.data.id);
         <p class="mono article-id">{entry.data.id}</p>
         <h1>{entry.data.title}</h1>
         <p class="lede">{entry.data.summary}</p>
+        <dl class="article-metadata" aria-label="Note metadata">
+          <div><dt>Date</dt><dd><time datetime={entry.data.date.toISOString().slice(0,10)}>{entry.data.date.toISOString().slice(0,10)}</time></dd></div>
+          <div><dt>Format</dt><dd>{entry.data.entry_kind.replaceAll('-', ' ')}</dd></div>
+          <div><dt>Level</dt><dd>{entry.data.level.replaceAll('-', ' ')}</dd></div>
+          <div><dt>Time</dt><dd>{entry.data.estimated_minutes} min</dd></div>
+          <div class="metadata-topics"><dt>Topics</dt><dd>{entry.data.domains.map((domain) => domain.replaceAll('-', ' ')).join(' · ')}</dd></div>
+        </dl>
         <div hidden>{entry.data.domains.map((domain) => <span data-pagefind-filter="domain">{domain}</span>)}</div>
         {entry.data.status !== 'published' && <aside class={`lifecycle ${entry.data.status}`}>This note is {entry.data.status}.{context.supersededBy && <> Continue with <a href={withBase(`/physics/${context.supersededBy}/`, base)}>{context.supersededBy}</a>.</>}</aside>}
         {context.replaces && <aside class="lifecycle relationship">This note replaces <a href={withBase(`/physics/${context.replaces}/`, base)}>{context.replaces}</a>.</aside>}
       </header>
 
-      <aside class="article-rail" aria-label="About and navigation">
-        <section class="rail-section">
-          <p class="section-label">About this note</p>
-          <dl class="rail-metadata">
-            <div><dt>Date</dt><dd>{entry.data.date.toISOString().slice(0,10)}</dd></div>
-            <div><dt>Format</dt><dd>{entry.data.entry_kind.replaceAll('-', ' ')}</dd></div>
-            <div><dt>Level</dt><dd>{entry.data.level.replaceAll('-', ' ')}</dd></div>
-            <div><dt>Estimated time</dt><dd>{entry.data.estimated_minutes} min</dd></div>
-            <div class="rail-topics"><dt>Topics</dt><dd>{entry.data.domains.map((domain) => domain.replaceAll('-', ' ')).join(' · ')}</dd></div>
-          </dl>
-        </section>
-
-        {outline.length > 0 && (
-          <details class="article-toc" open>
-            <summary>In this note</summary>
-            <ol>
-              {outline.map((heading) => <li><a href={`#${heading.slug}`}>{heading.text}</a></li>)}
-            </ol>
-          </details>
-        )}
-
-        {(assumptions || furtherReading) && (
-          <section class="rail-section rail-shortcuts">
-            <p class="section-label">Study apparatus</p>
-            <ul>
-              {assumptions && <li><span>A</span><a href={`#${assumptions.slug}`}>Scope and assumptions</a></li>}
-              {furtherReading && <li><span>R</span><a href={`#${furtherReading.slug}`}>Further reading</a></li>}
-            </ul>
-          </section>
-        )}
-
-        <section class="rail-section rail-files">
-          <p class="section-label">Reference files</p>
-          <ul>
-            <li><a href={markdownUrl}>Source Markdown</a></li>
-            <li><a href={jsonUrl}>Machine-readable JSON</a></li>
-          </ul>
-        </section>
-      </aside>
+      {outline.length > 0 && (
+        <details class="article-outline" open>
+          <summary>Contents <span>{outline.length} sections</span></summary>
+          <ol>
+            {outline.map((heading) => <li><a href={`#${heading.slug}`}>{heading.text}</a></li>)}
+          </ol>
+        </details>
+      )}
 
       <div class="article-body" data-pagefind-body><Content /></div>
 
@@ -98,13 +72,19 @@ const context = articleContext(physicsEntries, entry.data.id);
     </nav>
   </article>
   <script>
-    const tableOfContents = document.querySelector<HTMLDetailsElement>('.article-toc');
-    const compactLayout = window.matchMedia('(max-width: 1050px)');
+    const tableOfContents = document.querySelector<HTMLDetailsElement>('.article-outline');
+    const marginNotes = document.querySelectorAll<HTMLDetailsElement>('.margin-note');
+    const wideOutline = window.matchMedia('(min-width: 1540px)');
+    const wideMargins = window.matchMedia('(min-width: 1360px)');
     const syncTableOfContents = (matches: boolean) => {
-      if (!tableOfContents) return;
-      tableOfContents.open = !matches;
+      if (tableOfContents) tableOfContents.open = matches;
     };
-    syncTableOfContents(compactLayout.matches);
-    compactLayout.addEventListener('change', (event) => syncTableOfContents(event.matches));
+    const syncMarginNotes = (matches: boolean) => {
+      marginNotes.forEach((note) => (note.open = matches));
+    };
+    syncTableOfContents(wideOutline.matches);
+    syncMarginNotes(wideMargins.matches);
+    wideOutline.addEventListener('change', (event) => syncTableOfContents(event.matches));
+    wideMargins.addEventListener('change', (event) => syncMarginNotes(event.matches));
   </script>
 </BaseLayout>

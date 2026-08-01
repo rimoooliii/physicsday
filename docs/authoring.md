@@ -81,6 +81,21 @@ $$
 
 MathJax 不是完整 TeX 发行版。TikZ、tikz-feynman、circuitikz、PGFPlots、自定义宏包或完整文档 preamble 不在第一版支持范围内；它们应预先生成独立图片后再引用。
 
+## 页边注
+
+边注只用于解释它旁边的论证，例如符号约定、假设限制、参考来源或一小步补充推导。不要把文章元数据、目录或长篇正文放进边注。
+
+把边注写在它所解释的段落之前：
+
+```text
+> [!margin: Logical scope]
+> The anomaly is exact; the phase-diagram claim still needs infrared assumptions.
+
+The paragraph being annotated begins here.
+```
+
+标签可省略，此时显示为 `Margin note`。宽屏中边注进入正文右侧页边；窄屏中它变为可展开的正文内注释。边注应短而少；如果连续边注在页边拥挤，应合并它们或改写正文。
+
 ## Daily 结构
 
 周一至周六的标准 daily 包含：

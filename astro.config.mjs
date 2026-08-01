@@ -3,6 +3,7 @@ import sitemap from '@astrojs/sitemap';
 import { unified } from '@astrojs/markdown-remark';
 import remarkMath from 'remark-math';
 
+import { rehypeMarginNotes } from './src/lib/content/rehype-margin-notes.ts';
 import { rehypeRenderMath } from './src/lib/math/rehype-render-math.ts';
 
 const site = process.env.SITE_URL ?? 'https://example.invalid';
@@ -17,7 +18,7 @@ export default defineConfig({
   markdown: {
     processor: unified({
       remarkPlugins: [remarkMath],
-      rehypePlugins: [rehypeRenderMath],
+      rehypePlugins: [rehypeMarginNotes, rehypeRenderMath],
     }),
   },
 });

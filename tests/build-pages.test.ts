@@ -31,10 +31,23 @@ describe('human site build', () => {
     expect(html).toContain('Copy LaTeX');
     expect(html).toContain('data-copy-value');
     expect(html).toContain('article-navigation');
-    expect(html).toContain('article-rail');
-    expect(html).toContain('About this note');
-    expect(html).toContain('In this note');
+    expect(html).toContain('article-metadata');
+    expect(html).toContain('article-outline');
+    expect(html).toContain('Contents');
+    expect(html).not.toContain('article-rail');
     expect(html).not.toContain('fracture-rule');
+  });
+
+  it('renders authored annotations as semantic margin notes', async () => {
+    const html = await readFile(
+      'dist/physics/PHYS-2026-07-29-01/index.html',
+      'utf8',
+    );
+    expect(html).toContain('class="margin-note"');
+    expect(html).toContain('Logical scope');
+    expect(html).toContain('Counterterms');
+    expect(html).toContain('Assumption hinge');
+    expect(html).not.toContain('[!margin');
   });
 
   it('visually hides assistive MathML without removing it from the page', async () => {
@@ -65,6 +78,9 @@ describe('human site build', () => {
     expect(displayRule).toContain('width:max-content');
     expect(displayRule).toContain('min-width:100%');
     expect(displayRule).toContain('text-align:center');
+
+    const formulaRule = css.match(/\.math-expression\.math-display\{([^}]*)\}/)?.[1];
+    expect(formulaRule).toContain('border-block:1px solid var(--line-strong)');
   });
 
   it('renders controlled archive filters with published as the default', async () => {
